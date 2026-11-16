@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Beer Count</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Beer Count">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#b9770e">
+<style>
+:root{--bg:#f6f3ec;--card:#fff;--ink:#1f1b16;--mute:#7a7164;--line:#e6dfd2;--acc:#b9770e;--acc2:#8a5707;--ok:#2e7d32}
+@media(prefers-color-scheme:dark){:root{--bg:#161411;--card:#211e1a;--ink:#f3ede2;--mute:#a39a8b;--line:#363028;--acc:#e0a03a;--acc2:#f0b95c;--ok:#7cc77f}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:env(safe-area-inset-top) 0 calc(90px + env(safe-area-inset-bottom))}
+header{padding:16px 16px 8px}
+h1{margin:0 0 10px;font-size:22px}
+.date{display:flex;gap:8px;align-items:center}
+.date input{flex:1;font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+.date .saved{font-size:13px;color:var(--ok);min-width:60px;text-align:right}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:12px 16px;padding:14px}
+.card h2{margin:0 0 4px;font-size:18px;color:var(--acc2)}
+.loc{padding:10px 0;border-top:1px solid var(--line)}
+.loc:first-of-type{border-top:0}
+.locname{display:flex;justify-content:space-between;font-weight:600;margin-bottom:6px}
+.locname span{color:var(--mute);font-weight:500;font-size:14px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.f label{display:block;font-size:12px;color:var(--mute);margin-bottom:3px;text-align:center}
+.step{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.step button{width:30px;border:0;background:var(--bg);color:var(--ink);font-size:20px;padding:0}
+.step button:active{background:var(--line)}
+.step input{width:100%;min-width:0;border:0;text-align:center;font:600 18px inherit;font-family:inherit;padding:10px 0;background:var(--card);color:var(--ink);-moz-appearance:textfield}
+.step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.tot{margin-top:10px;padding-top:10px;border-top:2px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+.tot .k{color:var(--mute)}
+.tot .v{font-weight:700;text-align:right;font-size:18px}
+.tot .sold{width:110px}
+.final{font-size:26px;color:var(--acc)}
+.sum{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px}
+.sum button{flex:1;font:600 16px inherit;font-family:inherit;padding:13px;border-radius:12px;border:0;background:var(--acc);color:#fff}
+.sum button.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line);flex:.6}
+#report{margin:12px 16px;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,monospace;display:none}
+.note{font-size:12px;color:var(--mute);text-align:center;margin:8px 16px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍺 Morning Beer Count</h1>
+  <div class="date"><input type="date" id="date"><span class="saved" id="saved"></span></div>
+</header>
+<div id="app"></div>
+<div id="report"></div>
+<p class="note">Counts save automatically on this device, one report per date.</p>
+<div class="sum">
+  <button id="btnReport">Show report</button>
+  <button id="btnCopy">Copy</button>
+  <button id="btnClear" class="sec">Clear</button>
+</div>
+<script>
+const BEERS=[["local","Local beer"],["imported","Imported beer"],["special","Special import beer"]];
+const LOCS=[["storage","Storage"],["bar","Bar"],["coolers","Coolers"]];
+const FIELDS=[["b12","Boxes of 12",12],["b24","Boxes of 24",24],["loose","Loose bottles",1]];
+let state;
+const $=s=>document.querySelector(s);
+const key=d=>"beercount:"+d;
+function blank(){const s={sold:{},c:{}};BEERS.forEach(([b])=>{s.sold[b]=0;s.c[b]={};LOCS.forEach(([l])=>{s.c[b][l]={b12:0,b24:0,loose:0}})});return s}
+function load(d){try{const r=localStorage.getItem(key(d));if(r){const s=JSON.parse(r);const base=blank();return{sold:Object.assign(base.sold,s.sold||{}),c:Object.assign(base.c,s.c||{})}}}catch(e){}return blank()}
+function save(){try{localStorage.setItem(key($("#date").value),JSON.stringify(state));flash("Saved ✓")}catch(e){flash("")}}
+let t;function flash(m){const el=$("#saved");el.textContent=m;clearTimeout(t);t=setTimeout(()=>el.textContent="",1200)}
+const n=v=>Math.max(0,parseInt(v)||0);
+const locTotal=(b,l)=>FIELDS.reduce((a,[f,,m])=>a+n(state.c[b][l][f])*m,0);
+const beerTotal=b=>LOCS.reduce((a,[l])=>a+locTotal(b,l),0);
+function render(){
+  $("#app").innerHTML=BEERS.map(([b,name])=>`
+  <div class="card"><h2>${name}</h2>
+  ${LOCS.map(([l,ln])=>`<div class="loc"><div class="locname">${ln}<span id="lt-${b}-${l}">${locTotal(b,l)} beers</span></div>
+    <div class="row">${FIELDS.map(([f,fl])=>`<div class="f"><label>${fl}</label><div class="step">
+      <button data-b="${b}" data-l="${l}" data-f="${f}" data-d="-1">−</button>
+      <input type="number" inputmode="numeric" min="0" value="${n(state.c[b][l][f])}" data-b="${b}" data-l="${l}" data-f="${f}">
+      <button data-b="${b}" data-l="${l}" data-f="${f}" data-d="1">+</button></div></div>`).join("")}</div></div>`).join("")}
+  <div class="tot">
+    <span class="k">Counted on hand</span><span class="v" id="oh-${b}"></span>
+    <span class="k">Sold</span><div class="step sold"><button data-s="${b}" data-d="-1">−</button><input type="number" inputmode="numeric" min="0" value="${n(state.sold[b])}" data-s="${b}"><button data-s="${b}" data-d="1">+</button></div>
+    <span class="k"><b>Final number</b></span><span class="v final" id="fin-${b}"></span>
+  </div></div>`).join("");
+  update();
+}
+function update(){
+  BEERS.forEach(([b])=>{
+    LOCS.forEach(([l])=>{const e=$(`#lt-${b}-${l}`);if(e)e.textContent=locTotal(b,l)+" beers"});
+    $(`#oh-${b}`).textContent=beerTotal(b);
+    $(`#fin-${b}`).textContent=beerTotal(b)+n(state.sold[b]);
+  });
+  if($("#report").style.display==="block")$("#report").textContent=reportText();
+}
+function reportText(){
+  const d=$("#date").value;
+  let out="Beer report - "+d+"\n";let grand=0;
+  BEERS.forEach(([b,name])=>{
+    const f=beerTotal(b)+n(state.sold[b]);grand+=f;
+    out+="\n"+name+"\n";
+    LOCS.forEach(([l,ln])=>{const c=state.c[b][l];out+=`  ${ln}: ${locTotal(b,l)}  (${n(c.b12)}x12, ${n(c.b24)}x24, ${n(c.loose)} loose)\n`});
+    out+=`  On hand: ${beerTotal(b)}\n  Sold: ${n(state.sold[b])}\n  FINAL: ${f}\n`;
+  });
+  return out+"\nTotal all beers: "+grand;
+}
+function apply(el,delta){
+  if(el.dataset.s){const b=el.dataset.s;state.sold[b]=Math.max(0,n(state.sold[b])+delta);return}
+}
+document.addEventListener("click",e=>{
+  const bt=e.target.closest("button[data-d]");if(!bt)return;
+  const d=+bt.dataset.d;
+  const inp=bt.parentElement.querySelector("input");
+  const v=Math.max(0,n(inp.value)+d);inp.value=v;
+  setVal(inp,v);
+});
+document.addEventListener("input",e=>{if(e.target.matches(".step input"))setVal(e.target,n(e.target.value))});
+document.addEventListener("focusin",e=>{if(e.target.matches(".step input"))e.target.select()});
+function setVal(inp,v){
+  if(inp.dataset.s)state.sold[inp.dataset.s]=v;
+  else state.c[inp.dataset.b][inp.dataset.l][inp.dataset.f]=v;
+  update();save();
+}
+$("#btnReport").onclick=()=>{const r=$("#report");const show=r.style.display!=="block";r.style.display=show?"block":"none";$("#btnReport").textContent=show?"Hide report":"Show report";if(show){r.textContent=reportText();r.scrollIntoView({behavior:"smooth"})}};
+$("#btnCopy").onclick=async()=>{
+  const txt=reportText();
+  try{await navigator.clipboard.writeText(txt);flash("Copied ✓")}
+  catch(e){const r=$("#report");r.style.display="block";r.textContent=txt;$("#btnReport").textContent="Hide report";const rg=document.createRange();rg.selectNodeContents(r);const s=getSelection();s.removeAllRanges();s.addRange(rg);flash("Select & copy")}
+};
+let armed=false;
+$("#btnClear").onclick=()=>{
+  const b=$("#btnClear");
+  if(!armed){armed=true;b.textContent="Tap again";setTimeout(()=>{armed=false;b.textContent="Clear"},2500);return}
+  armed=false;b.textContent="Clear";state=blank();save();render();
+};
+$("#date").onchange=()=>{state=load($("#date").value);render()};
+(function init(){
+  const d=new Date();const iso=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  $("#date").value=iso;state=load(iso);render();
+})();
+if("serviceWorker"in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+</script>
+</body>
+</html>
