@@ -54,6 +54,17 @@ h1{margin:0 0 10px;font-size:22px}
 .cmp.bad b{color:#d32f2f}
 .gap{background:#fff3d6;color:#6b4a00;border-radius:10px;padding:8px 10px;font-size:13px;margin:6px 0 8px;display:none}
 @media(prefers-color-scheme:dark){.gap{background:#3a2e12;color:#f0d9a0}}
+.remind{display:none;background:#fff3d6;color:#6b4a00;margin:8px 16px 0;padding:10px 12px;border-radius:12px;font-size:14px}
+@media(prefers-color-scheme:dark){.remind{background:#3a2e12;color:#f0d9a0}}
+#bk button{font:600 15px inherit;font-family:inherit;padding:12px;border-radius:12px;border:0;background:var(--acc);color:#fff}
+#bk button.alt{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+#bk button.full{width:100%;margin-top:8px}
+.bkrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bkinfo{margin:0 0 10px;color:var(--mute);font-size:14px}
+#bk textarea{width:100%;margin-top:8px;font:13px ui-monospace,Menlo,monospace;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+#bk input[type=file]{margin-top:10px;width:100%;font-size:14px}
+.bkmsg{margin-top:8px;font-size:14px;color:var(--ok)}
+.bkmsg.bad{color:#d32f2f}
 </style>
 </head>
 <body>
@@ -61,7 +72,24 @@ h1{margin:0 0 10px;font-size:22px}
   <h1>🍺 Morning Beer Count</h1>
   <div class="date"><input type="date" id="date"><span class="saved" id="saved"></span></div>
 </header>
+<div id="bk-remind" class="remind"></div>
 <div id="app"></div>
+<div class="card" id="bk">
+  <h2>Backup</h2>
+  <p class="bkinfo" id="bk-info"></p>
+  <div class="bkrow"><button id="bkSave">Back up</button><button id="bkCsv" class="alt">Export to spreadsheet</button></div>
+  <button id="bkRestore" class="alt full">Restore from backup</button>
+  <div id="bk-restore" style="display:none">
+    <input type="file" id="bkFile" accept=".json,.txt,application/json,text/plain">
+    <textarea id="bkPaste" rows="4" placeholder="Or paste backup text here"></textarea>
+    <button id="bkDoRestore" class="full">Restore</button>
+  </div>
+  <div id="bk-out" style="display:none">
+    <textarea id="bkText" rows="6" readonly></textarea>
+    <button id="bkCopy" class="full">Copy text</button>
+  </div>
+  <div class="bkmsg" id="bk-msg"></div>
+</div>
 <div id="report"></div>
 <p class="note">Counts save automatically on this device, one report per date.</p>
 <div class="sum">
@@ -78,7 +106,7 @@ const $=s=>document.querySelector(s);
 const key=d=>"beercount:"+d;
 function blank(){const s={sold:{},recv:{},c:{}};BEERS.forEach(([b])=>{s.sold[b]=0;s.recv[b]={b12:0,b24:0};s.c[b]={};LOCS.forEach(([l])=>{s.c[b][l]={b12:0,b24:0,loose:0}})});return s}
 function load(d){try{const r=localStorage.getItem(key(d));if(r){const s=JSON.parse(r);const base=blank();return{sold:Object.assign(base.sold,s.sold||{}),recv:Object.assign(base.recv,s.recv||{}),c:Object.assign(base.c,s.c||{})}}}catch(e){}return blank()}
-function save(){try{localStorage.setItem(key($("#date").value),JSON.stringify(state));flash("Saved ✓")}catch(e){flash("")}}
+function save(){try{localStorage.setItem(key($("#date").value),JSON.stringify(state));flash("Saved ✓");refreshRemind()}catch(e){flash("")}}
 let t;function flash(m){const el=$("#saved");el.textContent=m;clearTimeout(t);t=setTimeout(()=>el.textContent="",1200)}
 const n=v=>Math.max(0,parseInt(v)||0);
 const locTotal=(b,l)=>FIELDS.reduce((a,[f,,m])=>a+n(state.c[b][l][f])*m,0);
@@ -191,9 +219,85 @@ $("#btnClear").onclick=()=>{
   armed=false;b.textContent="Clear";state=blank();save();render();
 };
 $("#date").onchange=()=>{state=load($("#date").value);render()};
+const META="beercount-meta:lastbackup";
+function todayIso(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function allDays(){const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("beercount:")){try{o[k.slice(10)]=JSON.parse(localStorage.getItem(k))}catch(e){}}}}catch(e){}return o}
+function lastBackup(){try{return localStorage.getItem(META)}catch(e){return null}}
+function markBackup(){try{localStorage.setItem(META,String(Date.now()))}catch(e){}refreshRemind()}
+function msg(t,bad){const m=$("#bk-msg");m.textContent=t;m.className="bkmsg"+(bad?" bad":"")}
+function refreshRemind(){
+  const count=Object.keys(allDays()).length,lb=lastBackup();
+  let old=false,txt;
+  if(!count)txt="No saved days yet.";
+  else if(!lb){txt="You haven't backed up yet.";old=true}
+  else{const age=Math.floor((Date.now()-Number(lb))/86400000);txt="Last backup: "+new Date(Number(lb)).toLocaleDateString()+(age>0?" ("+age+" days ago)":" (today)");old=age>=7}
+  $("#bk-info").textContent=count?(count+" saved day"+(count===1?"":"s")+". "+txt):txt;
+  const r=$("#bk-remind");r.style.display=old?"block":"none";r.textContent="Time to back up your counts. Tap here.";
+}
+$("#bk-remind").onclick=()=>$("#bk").scrollIntoView({behavior:"smooth"});
+async function shareText(name,mime,text){
+  try{
+    const f=new File([text],name,{type:mime});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return "shared"}
+  }catch(e){if(e&&e.name==="AbortError")return "cancel"}
+  $("#bkText").value=text;$("#bk-out").style.display="block";
+  return "text";
+}
+$("#bkSave").onclick=async()=>{
+  const days=allDays();
+  if(!Object.keys(days).length){msg("Nothing to back up yet.");return}
+  const data=JSON.stringify({app:"beercount",version:1,exported:new Date().toISOString(),days});
+  const r=await shareText("beer-backup-"+todayIso()+".json","text/plain",data);
+  if(r==="shared"){markBackup();msg("Backup sent. Check that it saved where you chose.")}
+  else if(r==="text")msg("Tap Copy text, then paste it into Notes to keep it safe.");
+  else msg("");
+};
+$("#bkCopy").onclick=async()=>{
+  const t=$("#bkText");
+  try{await navigator.clipboard.writeText(t.value);markBackup();msg("Copied. Paste it into Notes.")}
+  catch(e){t.removeAttribute("readonly");t.select();t.setSelectionRange(0,t.value.length);msg("Text selected. Tap Copy in the menu that appears.")}
+};
+function csvCell(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function buildCsv(){
+  const days=allDays(),dates=Object.keys(days).sort();
+  const rows=[["Date","Beer","Storage","Bar","Coolers","Counted on hand","Sold","Delivered","Final number","Expected","Difference (negative = short)"]];
+  let prev=null;
+  dates.forEach(d=>{
+    const raw=days[d]||{},base=blank();
+    const st={sold:Object.assign(base.sold,raw.sold||{}),recv:Object.assign(base.recv,raw.recv||{}),c:Object.assign(base.c,raw.c||{})};
+    BEERS.forEach(([b,name])=>{
+      const lt=l=>FIELDS.reduce((a,[f,,m])=>a+n(st.c[b][l][f])*m,0);
+      const [s1,s2,s3]=LOCS.map(([l])=>lt(l));const oh=s1+s2+s3;
+      const sold=n(st.sold[b]),dv=n(st.recv[b].b12)*12+n(st.recv[b].b24)*24;
+      let exp="",diff="";if(prev){exp=prevTotal(prev,b)-sold+dv;diff=oh-exp}
+      rows.push([d,name,s1,s2,s3,oh,sold,dv,oh+sold,exp,diff]);
+    });
+    prev=st;
+  });
+  return rows.map(r=>r.map(csvCell).join(",")).join("\n");
+}
+$("#bkCsv").onclick=async()=>{
+  if(!Object.keys(allDays()).length){msg("Nothing to export yet.");return}
+  const r=await shareText("beer-counts-"+todayIso()+".csv","text/csv",buildCsv());
+  if(r==="shared")msg("Spreadsheet file sent.");
+  else if(r==="text")msg("Copy this text and paste it into a spreadsheet or Notes.");
+  else msg("");
+};
+$("#bkRestore").onclick=()=>{const p=$("#bk-restore");p.style.display=p.style.display==="none"?"block":"none"};
+$("#bkFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{$("#bkPaste").value=await f.text();msg("File loaded. Tap Restore.")}catch(err){msg("Couldn't read that file.",1)}};
+$("#bkDoRestore").onclick=()=>{
+  let o;
+  try{o=JSON.parse($("#bkPaste").value.trim())}catch(e){msg("That doesn't look like a Beer Count backup.",1);return}
+  if(!o||o.app!=="beercount"||!o.days||typeof o.days!=="object"){msg("That doesn't look like a Beer Count backup.",1);return}
+  let c=0;
+  try{for(const [d,st] of Object.entries(o.days)){if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&st&&typeof st==="object"&&st.c&&typeof st.c==="object"){localStorage.setItem(key(d),JSON.stringify(st));c++}}}
+  catch(e){msg("Couldn't save to this phone.",1);return}
+  state=load($("#date").value);render();refreshRemind();$("#bkPaste").value="";
+  msg("Restored "+c+" day"+(c===1?"":"s")+".");
+};
 (function init(){
   const d=new Date();const iso=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-  $("#date").value=iso;state=load(iso);render();
+  $("#date").value=iso;state=load(iso);render();refreshRemind();
 })();
 if("serviceWorker"in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 </script>
