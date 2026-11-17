@@ -44,6 +44,14 @@ h1{margin:0 0 10px;font-size:22px}
 .sum button.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line);flex:.6}
 #report{margin:12px 16px;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,monospace;display:none}
 .note{font-size:12px;color:var(--mute);text-align:center;margin:8px 16px}
+.recv{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.recv .k{color:var(--mute);margin-bottom:6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cmp{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--bg);font-size:15px}
+.cmp .d{font-size:13px;color:var(--mute);margin-top:2px}
+.cmp.ok{border-left:4px solid var(--ok)}
+.cmp.bad{border-left:4px solid #d32f2f}
+.cmp.bad b{color:#d32f2f}
 </style>
 </head>
 <body>
@@ -66,13 +74,25 @@ const FIELDS=[["b12","Boxes of 12",12],["b24","Boxes of 24",24],["loose","Loose 
 let state;
 const $=s=>document.querySelector(s);
 const key=d=>"beercount:"+d;
-function blank(){const s={sold:{},c:{}};BEERS.forEach(([b])=>{s.sold[b]=0;s.c[b]={};LOCS.forEach(([l])=>{s.c[b][l]={b12:0,b24:0,loose:0}})});return s}
-function load(d){try{const r=localStorage.getItem(key(d));if(r){const s=JSON.parse(r);const base=blank();return{sold:Object.assign(base.sold,s.sold||{}),c:Object.assign(base.c,s.c||{})}}}catch(e){}return blank()}
+function blank(){const s={sold:{},recv:{},c:{}};BEERS.forEach(([b])=>{s.sold[b]=0;s.recv[b]={b12:0,b24:0};s.c[b]={};LOCS.forEach(([l])=>{s.c[b][l]={b12:0,b24:0,loose:0}})});return s}
+function load(d){try{const r=localStorage.getItem(key(d));if(r){const s=JSON.parse(r);const base=blank();return{sold:Object.assign(base.sold,s.sold||{}),recv:Object.assign(base.recv,s.recv||{}),c:Object.assign(base.c,s.c||{})}}}catch(e){}return blank()}
 function save(){try{localStorage.setItem(key($("#date").value),JSON.stringify(state));flash("Saved ✓")}catch(e){flash("")}}
 let t;function flash(m){const el=$("#saved");el.textContent=m;clearTimeout(t);t=setTimeout(()=>el.textContent="",1200)}
 const n=v=>Math.max(0,parseInt(v)||0);
 const locTotal=(b,l)=>FIELDS.reduce((a,[f,,m])=>a+n(state.c[b][l][f])*m,0);
 const beerTotal=b=>LOCS.reduce((a,[l])=>a+locTotal(b,l),0);
+const delivered=b=>n(state.recv[b].b12)*12+n(state.recv[b].b24)*24;
+function prevInfo(){
+  const d=$("#date").value;let best=null;
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("beercount:")){const dd=k.slice(10);if(dd<d&&(!best||dd>best))best=dd}}}catch(e){}
+  return best?{date:best,st:load(best)}:null;
+}
+function prevTotal(st,b){return LOCS.reduce((a,[l])=>a+FIELDS.reduce((x,[f,,m])=>x+n(st.c[b][l][f])*m,0),0)}
+function cmpInfo(b){
+  const p=prevInfo();if(!p)return null;
+  const prev=prevTotal(p.st,b),sold=n(state.sold[b]),dv=delivered(b),exp=prev-sold+dv,act=beerTotal(b);
+  return{date:p.date,prev,sold,dv,exp,act,diff:act-exp};
+}
 function render(){
   $("#app").innerHTML=BEERS.map(([b,name])=>`
   <div class="card"><h2>${name}</h2>
@@ -83,9 +103,15 @@ function render(){
       <button data-b="${b}" data-l="${l}" data-f="${f}" data-d="1">+</button></div></div>`).join("")}</div></div>`).join("")}
   <div class="tot">
     <span class="k">Counted on hand</span><span class="v" id="oh-${b}"></span>
-    <span class="k">Sold</span><div class="step sold"><button data-s="${b}" data-d="-1">−</button><input type="number" inputmode="numeric" min="0" value="${n(state.sold[b])}" data-s="${b}"><button data-s="${b}" data-d="1">+</button></div>
+    <span class="k">Sold yesterday</span><div class="step sold"><button data-s="${b}" data-d="-1">−</button><input type="number" inputmode="numeric" min="0" value="${n(state.sold[b])}" data-s="${b}"><button data-s="${b}" data-d="1">+</button></div>
     <span class="k"><b>Final number</b></span><span class="v final" id="fin-${b}"></span>
-  </div></div>`).join("");
+  </div>
+  <div class="recv"><div class="k">Delivered since last count</div><div class="row2">
+    ${[["b12","Boxes of 12"],["b24","Boxes of 24"]].map(([f,fl])=>`<div class="f"><label>${fl}</label><div class="step">
+      <button data-r="${b}" data-rf="${f}" data-d="-1">−</button>
+      <input type="number" inputmode="numeric" min="0" value="${n(state.recv[b][f])}" data-r="${b}" data-rf="${f}">
+      <button data-r="${b}" data-rf="${f}" data-d="1">+</button></div></div>`).join("")}</div></div>
+  <div class="cmp" id="cmp-${b}"></div></div>`).join("");
   update();
 }
 function update(){
@@ -93,6 +119,13 @@ function update(){
     LOCS.forEach(([l])=>{const e=$(`#lt-${b}-${l}`);if(e)e.textContent=locTotal(b,l)+" beers"});
     $(`#oh-${b}`).textContent=beerTotal(b);
     $(`#fin-${b}`).textContent=beerTotal(b)+n(state.sold[b]);
+    const c=cmpInfo(b),box=$(`#cmp-${b}`);
+    if(!c){box.className="cmp";box.textContent="No earlier count saved yet, so nothing to compare.";}
+    else{
+      box.className="cmp "+(c.diff===0?"ok":"bad");
+      const msg=c.diff===0?"✓ Matches":(c.diff<0?`⚠ Short by ${-c.diff}`:`⚠ Over by ${c.diff}`);
+      box.innerHTML=`<b>${msg}</b><div class="d">Last count (${c.date}): ${c.prev} − sold ${c.sold} + delivered ${c.dv} = expected ${c.exp}. Counted now: ${c.act}.</div>`;
+    }
   });
   if($("#report").style.display==="block")$("#report").textContent=reportText();
 }
@@ -103,7 +136,9 @@ function reportText(){
     const f=beerTotal(b)+n(state.sold[b]);grand+=f;
     out+="\n"+name+"\n";
     LOCS.forEach(([l,ln])=>{const c=state.c[b][l];out+=`  ${ln}: ${locTotal(b,l)}  (${n(c.b12)}x12, ${n(c.b24)}x24, ${n(c.loose)} loose)\n`});
-    out+=`  On hand: ${beerTotal(b)}\n  Sold: ${n(state.sold[b])}\n  FINAL: ${f}\n`;
+    out+=`  On hand: ${beerTotal(b)}\n  Sold: ${n(state.sold[b])}\n  FINAL: ${f}\n  Delivered: ${delivered(b)}\n`;
+    const c=cmpInfo(b);
+    out+=c?`  Check vs ${c.date}: expected ${c.exp}, counted ${c.act}, ${c.diff===0?"matches":(c.diff<0?"SHORT "+(-c.diff):"OVER "+c.diff)}\n`:"  Check: no earlier count\n";
   });
   return out+"\nTotal all beers: "+grand;
 }
@@ -120,7 +155,7 @@ document.addEventListener("click",e=>{
 document.addEventListener("input",e=>{if(e.target.matches(".step input"))setVal(e.target,n(e.target.value))});
 document.addEventListener("focusin",e=>{if(e.target.matches(".step input"))e.target.select()});
 function setVal(inp,v){
-  if(inp.dataset.s)state.sold[inp.dataset.s]=v;
+  if(inp.dataset.r)state.recv[inp.dataset.r][inp.dataset.rf]=v;else if(inp.dataset.s)state.sold[inp.dataset.s]=v;
   else state.c[inp.dataset.b][inp.dataset.l][inp.dataset.f]=v;
   update();save();
 }
