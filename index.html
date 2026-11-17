@@ -65,6 +65,7 @@ h1{margin:0 0 10px;font-size:22px}
 #bk input[type=file]{margin-top:10px;width:100%;font-size:14px}
 .bkmsg{margin-top:8px;font-size:14px;color:var(--ok)}
 .bkmsg.bad{color:#d32f2f}
+.sub{font-size:12px;color:var(--mute);margin:-2px 0 6px}
 </style>
 </head>
 <body>
@@ -125,7 +126,7 @@ function cmpInfo(b){
 }
 function render(){
   $("#app").innerHTML=BEERS.map(([b,name])=>`
-  <div class="card"><h2>${name}</h2><div class="gap" id="gap-${b}"></div>
+  <div class="card"><h2>${name}</h2>${b==="special"?'<div class="sub">Iceberg &amp; Guinness</div>':""}<div class="gap" id="gap-${b}"></div>
   ${LOCS.map(([l,ln])=>`<div class="loc"><div class="locname">${ln}<span id="lt-${b}-${l}">${locTotal(b,l)} beers</span></div>
     <div class="row">${FIELDS.map(([f,fl])=>`<div class="f"><label>${fl}</label><div class="step">
       <button data-b="${b}" data-l="${l}" data-f="${f}" data-d="-1">−</button>
