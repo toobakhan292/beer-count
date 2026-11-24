@@ -117,15 +117,17 @@ h1{margin:0 0 10px;font-size:22px}
 </div>
 <script>
 const BEERS=[["local","Local Beer"],["imported","Imported Beer"],["special","Special Import Beer"]];
-const F_BOX=[["b12","Boxes of 12",12],["b24","Boxes of 24",24],["loose","Loose bottles",1]];
+const F_BOX=[["b6","Boxes of 6",6],["b12","Boxes of 12",12],["b24","Boxes of 24",24],["loose","Loose bottles",1]];
 const F_BAR=[["r8","Rows of 8",8],["r7","Rows of 7",7],["loose","Loose bottles",1]];
 const F_COOL=[["r7","Rows of 7",7],["r6","Rows of 6",6],["loose","Loose bottles",1]];
 const LOCS=[["storage","Storage",F_BOX],["bar","Bar",F_BAR],["cooler1","Cooler 1",F_COOL],["cooler2","Cooler 2",F_COOL]];
 const fieldsOf=l=>LOCS.find(x=>x[0]===l)[2];
+const shown=(b,f)=>!(f==="b6"&&b==="local");
+const RECV=b=>[["b6","Boxes of 6"],["b12","Boxes of 12"],["b24","Boxes of 24"]].filter(([f])=>shown(b,f));
 let state;
 const $=s=>document.querySelector(s);
 const key=d=>"beercount:"+d;
-function blank(){const s={sold:{},spill:{},recv:{},c:{}};BEERS.forEach(([b])=>{s.sold[b]=0;s.spill[b]=0;s.recv[b]={b12:0,b24:0};s.c[b]={};LOCS.forEach(([l,,fs])=>{s.c[b][l]=Object.fromEntries(fs.map(([f])=>[f,0]))})});return s}
+function blank(){const s={sold:{},spill:{},recv:{},c:{}};BEERS.forEach(([b])=>{s.sold[b]=0;s.spill[b]=0;s.recv[b]={b6:0,b12:0,b24:0};s.c[b]={};LOCS.forEach(([l,,fs])=>{s.c[b][l]=Object.fromEntries(fs.map(([f])=>[f,0]))})});return s}
 function norm(s){
   s=s||{};const base=blank();
   const out={sold:Object.assign(base.sold,s.sold||{}),spill:Object.assign(base.spill,s.spill||{}),recv:Object.assign(base.recv,s.recv||{}),c:base.c};
@@ -143,7 +145,7 @@ let t;function flash(m){const el=$("#saved");el.textContent=m;clearTimeout(t);t=
 const n=v=>Math.max(0,parseInt(v)||0);
 const locTotal=(b,l)=>fieldsOf(l).reduce((a,[f,,m])=>a+n(state.c[b][l][f])*m,0);
 const beerTotal=b=>LOCS.reduce((a,[l])=>a+locTotal(b,l),0);
-const delivered=b=>n(state.recv[b].b12)*12+n(state.recv[b].b24)*24;
+const delivered=b=>n(state.recv[b].b6)*6+n(state.recv[b].b12)*12+n(state.recv[b].b24)*24;
 function prevInfo(){
   const d=$("#date").value;let best=null;
   try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("beercount:")){const dd=k.slice(10);if(dd<d&&(!best||dd>best))best=dd}}}catch(e){}
@@ -169,14 +171,14 @@ function render(){
   <div class="bhead"><h2>${name}</h2>${b==="special"?'<div class="sub">Iceberg &amp; Guinness</div>':""}</div>
   <div class="bbody"><div class="gap" id="gap-${b}"></div>
   ${LOCS.map(([l,ln])=>`<div class="loc"><div class="locname">${ln}<span id="lt-${b}-${l}">${locTotal(b,l)} beers</span></div>
-    ${fieldsOf(l).map(([f,fl])=>`<div class="frow"><div class="fl">${fl}<small id="ft-${b}-${l}-${f}"></small></div>${stepper(`data-b="${b}" data-l="${l}" data-f="${f}"`,n(state.c[b][l][f]))}</div>`).join("")}</div>`).join("")}
+    ${fieldsOf(l).filter(([f])=>shown(b,f)).map(([f,fl])=>`<div class="frow"><div class="fl">${fl}<small id="ft-${b}-${l}-${f}"></small></div>${stepper(`data-b="${b}" data-l="${l}" data-f="${f}"`,n(state.c[b][l][f]))}</div>`).join("")}</div>`).join("")}
   <div class="tot">
     <div class="big"><span>Counted on hand</span><b id="oh-${b}"></b></div>
     <div class="frow"><div class="fl" id="soldlbl-${b}">Sold since last count</div>${stepper(`data-s="${b}"`,n(state.sold[b]))}</div>
     <div class="big"><span><b style="font-size:16px">Final number</b></span><b class="final" id="fin-${b}"></b></div>
   </div>
   <div class="recv"><div class="k">Delivered since last count</div>
-    ${[["b12","Boxes of 12"],["b24","Boxes of 24"]].map(([f,fl])=>`<div class="frow"><div class="fl">${fl}</div>${stepper(`data-r="${b}" data-rf="${f}"`,n(state.recv[b][f]))}</div>`).join("")}</div>
+    ${RECV(b).map(([f,fl])=>`<div class="frow"><div class="fl">${fl}</div>${stepper(`data-r="${b}" data-rf="${f}"`,n(state.recv[b][f]))}</div>`).join("")}</div>
   <div class="spill"><div class="sph">Spillage</div>
     <div class="frow"><div class="fl">Spilled since last count<small>Number of beers</small></div>${stepper(`data-p="${b}"`,n(state.spill[b]))}</div>
     <div class="month"><span id="spm-${b}">Total spilled this month</span><b id="spt-${b}">0</b></div></div>
@@ -225,7 +227,7 @@ function reportText(){
   BEERS.forEach(([b,name])=>{
     const f=beerTotal(b)+n(state.sold[b]);grand+=f;
     out+="\n"+name+"\n";
-    LOCS.forEach(([l,ln,fs])=>{const c=state.c[b][l];out+=`  ${ln}: ${locTotal(b,l)}  (${fs.map(([f,,m])=>m>1?n(c[f])+"x"+m:n(c[f])+" loose").join(", ")})\n`});
+    LOCS.forEach(([l,ln,fs])=>{const c=state.c[b][l];out+=`  ${ln}: ${locTotal(b,l)}  (${fs.filter(([f])=>shown(b,f)).map(([f,,m])=>m>1?n(c[f])+"x"+m:n(c[f])+" loose").join(", ")})\n`});
     out+=`  On hand: ${beerTotal(b)}\n  Sold: ${n(state.sold[b])}\n  FINAL: ${f}\n  Delivered: ${delivered(b)}\n  Spilled: ${n(state.spill[b])} (this month: ${monthSpill(b)})\n`;
     const c=cmpInfo(b);
     out+=c?`  Check vs ${c.date}: expected ${c.exp}, counted ${c.act}, ${c.diff===0?"matches":(c.diff<0?"SHORT "+(-c.diff):"OVER "+c.diff)}\n`:"  Check: no earlier count\n";
@@ -311,7 +313,7 @@ function buildCsv(){
     BEERS.forEach(([b,name])=>{
       const lt=l=>fieldsOf(l).reduce((a,[f,,m])=>a+n(st.c[b][l][f])*m,0);
       const [s1,s2,s3,s4]=LOCS.map(([l])=>lt(l));const oh=s1+s2+s3+s4;
-      const sold=n(st.sold[b]),sp=n(st.spill[b]),dv=n(st.recv[b].b12)*12+n(st.recv[b].b24)*24;
+      const sold=n(st.sold[b]),sp=n(st.spill[b]),dv=n(st.recv[b].b6)*6+n(st.recv[b].b12)*12+n(st.recv[b].b24)*24;
       const mk=d.slice(0,7)+b;mt[mk]=(mt[mk]||0)+sp;
       let exp="",diff="";if(prev){exp=prevTotal(prev,b)-sold-sp+dv;diff=oh-exp}
       rows.push([d,name,s1,s2,s3,s4,oh,sold,dv,sp,mt[mk],oh+sold,exp,diff]);
