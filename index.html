@@ -21,31 +21,47 @@ h1{margin:0 0 10px;font-size:22px}
 .date{display:flex;gap:8px;align-items:center}
 .date input{flex:1;font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
 .date .saved{font-size:13px;color:var(--ok);min-width:60px;text-align:right}
+.beer-local{--bc:#b9770e;--bt:#fdf1d9;--bd:#7a4d05}
+.beer-imported{--bc:#1f7a8c;--bt:#dff1f4;--bd:#0f4f5c}
+.beer-special{--bc:#7b3fa0;--bt:#efe3f7;--bd:#4f2468}
+@media(prefers-color-scheme:dark){.beer-local{--bc:#e0a03a;--bt:#3a2c12;--bd:#f0c36e}.beer-imported{--bc:#4fb4c8;--bt:#12333a;--bd:#8fd8e6}.beer-special{--bc:#b583d9;--bt:#2d1b3a;--bd:#dcb6f2}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:12px 16px;padding:14px}
 .card h2{margin:0 0 4px;font-size:18px;color:var(--acc2)}
-.loc{padding:10px 0;border-top:1px solid var(--line)}
-.loc:first-of-type{border-top:0}
-.locname{display:flex;justify-content:space-between;font-weight:600;margin-bottom:6px}
-.locname span{color:var(--mute);font-weight:500;font-size:14px}
-.row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.f label{display:block;font-size:12px;color:var(--mute);margin-bottom:3px;text-align:center}
-.step{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.step button{width:30px;border:0;background:var(--bg);color:var(--ink);font-size:20px;padding:0}
-.step button:active{background:var(--line)}
-.step input{width:100%;min-width:0;border:0;text-align:center;font:600 18px inherit;font-family:inherit;padding:10px 0;background:var(--card);color:var(--ink);-moz-appearance:textfield}
+.bcard{padding:0 0 14px;border-top:6px solid var(--bc);scroll-margin-top:64px;overflow:hidden}
+.bhead{background:var(--bt);padding:12px 14px}
+.bhead h2{margin:0;font-size:22px;color:var(--bd)}
+.bhead .sub{margin:2px 0 0;font-size:13px;color:var(--bd);opacity:.85}
+.bbody{padding:0 14px}
+.nav{position:sticky;top:0;z-index:5;display:flex;gap:8px;padding:8px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.chip{flex:1;border:0;border-radius:12px;padding:8px 6px;background:var(--bt);color:var(--bd);font-family:inherit;font-size:13px;display:flex;flex-direction:column;align-items:center;border-bottom:3px solid var(--bc)}
+.chip b{font-size:18px;font-weight:700}
+.loc{background:var(--bg);border-radius:12px;padding:10px 12px;margin-top:10px}
+.locname{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;font-size:18px;margin-bottom:4px}
+.locname span{color:var(--bd);font-weight:700;font-size:15px}
+.frow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0}
+.fl{font-size:16px}
+.fl small{display:block;color:var(--mute);font-size:13px}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:46px;height:46px;border-radius:12px;border:0;background:var(--bt);color:var(--bd);font-size:26px;line-height:1;padding:0;font-family:inherit}
+.step button:active{background:var(--bc);color:#fff}
+.step input{width:64px;height:46px;min-width:0;border:1px solid var(--line);border-radius:12px;text-align:center;font-weight:600;font-size:22px;font-family:inherit;background:var(--card);color:var(--ink);-moz-appearance:textfield}
+.step input:focus{outline:2px solid var(--bc)}
 .step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.tot{margin-top:10px;padding-top:10px;border-top:2px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
-.tot .k{color:var(--mute)}
-.tot .v{font-weight:700;text-align:right;font-size:18px}
-.tot .sold{width:110px}
-.final{font-size:26px;color:var(--acc)}
+.tot{margin-top:14px;padding-top:10px;border-top:2px solid var(--bc)}
+.big{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;font-size:16px}
+.big b{font-size:22px}
+.big b.final{font-size:30px;color:var(--bd)}
+.spill{margin-top:14px;padding:10px 12px;border-radius:12px;border:1.5px dashed var(--bc)}
+.spill .sph{font-weight:600;font-size:17px;color:var(--bd);margin-bottom:2px}
+.spill .month{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;padding-top:8px;border-top:1px solid var(--line)}
+.spill .month b{font-size:24px;color:var(--bd)}
 .sum{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px}
-.sum button{flex:1;font:600 16px inherit;font-family:inherit;padding:13px;border-radius:12px;border:0;background:var(--acc);color:#fff}
+.sum button{flex:1;font-weight:600;font-size:16px;font-family:inherit;padding:13px;border-radius:12px;border:0;background:var(--acc);color:#fff}
 .sum button.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line);flex:.6}
 #report{margin:12px 16px;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,monospace;display:none}
 .note{font-size:12px;color:var(--mute);text-align:center;margin:8px 16px}
 .recv{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
-.recv .k{color:var(--mute);margin-bottom:6px}
+.recv .k{color:var(--ink);font-weight:600;margin-bottom:2px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .cmp{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--bg);font-size:15px}
 .cmp .d{font-size:13px;color:var(--mute);margin-top:2px}
@@ -56,7 +72,7 @@ h1{margin:0 0 10px;font-size:22px}
 @media(prefers-color-scheme:dark){.gap{background:#3a2e12;color:#f0d9a0}}
 .remind{display:none;background:#fff3d6;color:#6b4a00;margin:8px 16px 0;padding:10px 12px;border-radius:12px;font-size:14px}
 @media(prefers-color-scheme:dark){.remind{background:#3a2e12;color:#f0d9a0}}
-#bk button{font:600 15px inherit;font-family:inherit;padding:12px;border-radius:12px;border:0;background:var(--acc);color:#fff}
+#bk button{font-weight:600;font-size:15px;font-family:inherit;padding:12px;border-radius:12px;border:0;background:var(--acc);color:#fff}
 #bk button.alt{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
 #bk button.full{width:100%;margin-top:8px}
 .bkrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -73,6 +89,7 @@ h1{margin:0 0 10px;font-size:22px}
   <h1>🍺 Morning Beer Count</h1>
   <div class="date"><input type="date" id="date"><span class="saved" id="saved"></span></div>
 </header>
+<div class="nav" id="nav"></div>
 <div id="bk-remind" class="remind"></div>
 <div id="app"></div>
 <div class="card" id="bk">
@@ -108,10 +125,10 @@ const fieldsOf=l=>LOCS.find(x=>x[0]===l)[2];
 let state;
 const $=s=>document.querySelector(s);
 const key=d=>"beercount:"+d;
-function blank(){const s={sold:{},recv:{},c:{}};BEERS.forEach(([b])=>{s.sold[b]=0;s.recv[b]={b12:0,b24:0};s.c[b]={};LOCS.forEach(([l,,fs])=>{s.c[b][l]=Object.fromEntries(fs.map(([f])=>[f,0]))})});return s}
+function blank(){const s={sold:{},spill:{},recv:{},c:{}};BEERS.forEach(([b])=>{s.sold[b]=0;s.spill[b]=0;s.recv[b]={b12:0,b24:0};s.c[b]={};LOCS.forEach(([l,,fs])=>{s.c[b][l]=Object.fromEntries(fs.map(([f])=>[f,0]))})});return s}
 function norm(s){
   s=s||{};const base=blank();
-  const out={sold:Object.assign(base.sold,s.sold||{}),recv:Object.assign(base.recv,s.recv||{}),c:base.c};
+  const out={sold:Object.assign(base.sold,s.sold||{}),spill:Object.assign(base.spill,s.spill||{}),recv:Object.assign(base.recv,s.recv||{}),c:base.c};
   BEERS.forEach(([b])=>{
     const old=(s.c&&s.c[b])||{};
     LOCS.forEach(([l,,fs])=>{const src=old[l]||{};fs.forEach(([f])=>{out.c[b][l][f]=n(src[f])})});
@@ -135,28 +152,35 @@ function prevInfo(){
 function prevTotal(st,b){return LOCS.reduce((a,[l])=>a+fieldsOf(l).reduce((x,[f,,m])=>x+n(st.c[b][l][f])*m,0),0)}
 function cmpInfo(b){
   const p=prevInfo();if(!p)return null;
-  const prev=prevTotal(p.st,b),sold=n(state.sold[b]),dv=delivered(b),exp=prev-sold+dv,act=beerTotal(b);
-  return{date:p.date,prev,sold,dv,exp,act,diff:act-exp};
+  const prev=prevTotal(p.st,b),sold=n(state.sold[b]),sp=n(state.spill[b]),dv=delivered(b),exp=prev-sold-sp+dv,act=beerTotal(b);
+  return{date:p.date,prev,sold,sp,dv,exp,act,diff:act-exp};
 }
+function monthSpill(b){
+  const cur=$("#date").value,mk=cur.slice(0,7),days=allDays();let t=n(state.spill[b]);
+  Object.keys(days).forEach(d=>{if(d!==cur&&d.slice(0,7)===mk)t+=n(((days[d]||{}).spill||{})[b])});
+  return t;
+}
+const stepper=(a,v)=>`<div class="step"><button ${a} data-d="-1" aria-label="minus">−</button><input type="number" inputmode="numeric" min="0" value="${v}" ${a}><button ${a} data-d="1" aria-label="plus">+</button></div>`;
+const SHORT={local:"Local",imported:"Imported",special:"Special"};
 function render(){
+  $("#nav").innerHTML=BEERS.map(([b])=>`<button class="chip beer-${b}" data-go="${b}"><span>${SHORT[b]}</span><b id="nv-${b}">0</b></button>`).join("");
   $("#app").innerHTML=BEERS.map(([b,name])=>`
-  <div class="card"><h2>${name}</h2>${b==="special"?'<div class="sub">Iceberg &amp; Guinness</div>':""}<div class="gap" id="gap-${b}"></div>
+  <div class="card bcard beer-${b}" id="sec-${b}">
+  <div class="bhead"><h2>${name}</h2>${b==="special"?'<div class="sub">Iceberg &amp; Guinness</div>':""}</div>
+  <div class="bbody"><div class="gap" id="gap-${b}"></div>
   ${LOCS.map(([l,ln])=>`<div class="loc"><div class="locname">${ln}<span id="lt-${b}-${l}">${locTotal(b,l)} beers</span></div>
-    <div class="row">${fieldsOf(l).map(([f,fl])=>`<div class="f"><label>${fl}</label><div class="step">
-      <button data-b="${b}" data-l="${l}" data-f="${f}" data-d="-1">−</button>
-      <input type="number" inputmode="numeric" min="0" value="${n(state.c[b][l][f])}" data-b="${b}" data-l="${l}" data-f="${f}">
-      <button data-b="${b}" data-l="${l}" data-f="${f}" data-d="1">+</button></div></div>`).join("")}</div></div>`).join("")}
+    ${fieldsOf(l).map(([f,fl])=>`<div class="frow"><div class="fl">${fl}<small id="ft-${b}-${l}-${f}"></small></div>${stepper(`data-b="${b}" data-l="${l}" data-f="${f}"`,n(state.c[b][l][f]))}</div>`).join("")}</div>`).join("")}
   <div class="tot">
-    <span class="k">Counted on hand</span><span class="v" id="oh-${b}"></span>
-    <span class="k" id="soldlbl-${b}">Sold since last count</span><div class="step sold"><button data-s="${b}" data-d="-1">−</button><input type="number" inputmode="numeric" min="0" value="${n(state.sold[b])}" data-s="${b}"><button data-s="${b}" data-d="1">+</button></div>
-    <span class="k"><b>Final number</b></span><span class="v final" id="fin-${b}"></span>
+    <div class="big"><span>Counted on hand</span><b id="oh-${b}"></b></div>
+    <div class="frow"><div class="fl" id="soldlbl-${b}">Sold since last count</div>${stepper(`data-s="${b}"`,n(state.sold[b]))}</div>
+    <div class="big"><span><b style="font-size:16px">Final number</b></span><b class="final" id="fin-${b}"></b></div>
   </div>
-  <div class="recv"><div class="k">Delivered since last count</div><div class="row2">
-    ${[["b12","Boxes of 12"],["b24","Boxes of 24"]].map(([f,fl])=>`<div class="f"><label>${fl}</label><div class="step">
-      <button data-r="${b}" data-rf="${f}" data-d="-1">−</button>
-      <input type="number" inputmode="numeric" min="0" value="${n(state.recv[b][f])}" data-r="${b}" data-rf="${f}">
-      <button data-r="${b}" data-rf="${f}" data-d="1">+</button></div></div>`).join("")}</div></div>
-  <div class="cmp" id="cmp-${b}"></div></div>`).join("");
+  <div class="recv"><div class="k">Delivered since last count</div>
+    ${[["b12","Boxes of 12"],["b24","Boxes of 24"]].map(([f,fl])=>`<div class="frow"><div class="fl">${fl}</div>${stepper(`data-r="${b}" data-rf="${f}"`,n(state.recv[b][f]))}</div>`).join("")}</div>
+  <div class="spill"><div class="sph">Spillage</div>
+    <div class="frow"><div class="fl">Spilled since last count<small>Number of beers</small></div>${stepper(`data-p="${b}"`,n(state.spill[b]))}</div>
+    <div class="month"><span id="spm-${b}">Total spilled this month</span><b id="spt-${b}">0</b></div></div>
+  <div class="cmp" id="cmp-${b}"></div></div></div>`).join("");
   update();
 }
 function daysBetween(a,c){return Math.round((Date.UTC(...c.split("-").map((x,i)=>i===1?x-1:+x))-Date.UTC(...a.split("-").map((x,i)=>i===1?x-1:+x)))/86400000)}
@@ -180,13 +204,17 @@ function update(){
   BEERS.forEach(([b])=>{
     LOCS.forEach(([l])=>{const e=$(`#lt-${b}-${l}`);if(e)e.textContent=locTotal(b,l)+" beers"});
     $(`#oh-${b}`).textContent=beerTotal(b);
+    $(`#nv-${b}`).textContent=beerTotal(b);
+    LOCS.forEach(([l,,fs])=>fs.forEach(([f,,m])=>{const e=$(`#ft-${b}-${l}-${f}`);if(e)e.textContent=m>1?"= "+n(state.c[b][l][f])*m+" beers":""}));
+    const mname=new Date($("#date").value+"T12:00:00").toLocaleDateString(undefined,{month:"long"});
+    $(`#spm-${b}`).textContent="Total spilled in "+mname;$(`#spt-${b}`).textContent=monthSpill(b);
     $(`#fin-${b}`).textContent=beerTotal(b)+n(state.sold[b]);
     const c=cmpInfo(b),box=$(`#cmp-${b}`);
     if(!c){box.className="cmp";box.textContent="No earlier count saved yet, so nothing to compare.";}
     else{
       box.className="cmp "+(c.diff===0?"ok":"bad");
       const msg=c.diff===0?"✓ Matches":(c.diff<0?`⚠ Short by ${-c.diff}`:`⚠ Over by ${c.diff}`);
-      box.innerHTML=`<b>${msg}</b><div class="d">Last count (${c.date}): ${c.prev} − sold ${c.sold} + delivered ${c.dv} = expected ${c.exp}. Counted now: ${c.act}.</div>`;
+      box.innerHTML=`<b>${msg}</b><div class="d">Last count (${c.date}): ${c.prev} − sold ${c.sold}${c.sp?` − spilled ${c.sp}`:""} + delivered ${c.dv} = expected ${c.exp}. Counted now: ${c.act}.</div>`;
     }
   });
   if($("#report").style.display==="block")$("#report").textContent=reportText();
@@ -198,7 +226,7 @@ function reportText(){
     const f=beerTotal(b)+n(state.sold[b]);grand+=f;
     out+="\n"+name+"\n";
     LOCS.forEach(([l,ln,fs])=>{const c=state.c[b][l];out+=`  ${ln}: ${locTotal(b,l)}  (${fs.map(([f,,m])=>m>1?n(c[f])+"x"+m:n(c[f])+" loose").join(", ")})\n`});
-    out+=`  On hand: ${beerTotal(b)}\n  Sold: ${n(state.sold[b])}\n  FINAL: ${f}\n  Delivered: ${delivered(b)}\n`;
+    out+=`  On hand: ${beerTotal(b)}\n  Sold: ${n(state.sold[b])}\n  FINAL: ${f}\n  Delivered: ${delivered(b)}\n  Spilled: ${n(state.spill[b])} (this month: ${monthSpill(b)})\n`;
     const c=cmpInfo(b);
     out+=c?`  Check vs ${c.date}: expected ${c.exp}, counted ${c.act}, ${c.diff===0?"matches":(c.diff<0?"SHORT "+(-c.diff):"OVER "+c.diff)}\n`:"  Check: no earlier count\n";
   });
@@ -208,6 +236,7 @@ function apply(el,delta){
   if(el.dataset.s){const b=el.dataset.s;state.sold[b]=Math.max(0,n(state.sold[b])+delta);return}
 }
 document.addEventListener("click",e=>{
+  const ch=e.target.closest("[data-go]");if(ch){const el=$("#sec-"+ch.dataset.go);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});return}
   const bt=e.target.closest("button[data-d]");if(!bt)return;
   const d=+bt.dataset.d;
   const inp=bt.parentElement.querySelector("input");
@@ -217,7 +246,7 @@ document.addEventListener("click",e=>{
 document.addEventListener("input",e=>{if(e.target.matches(".step input"))setVal(e.target,n(e.target.value))});
 document.addEventListener("focusin",e=>{if(e.target.matches(".step input"))e.target.select()});
 function setVal(inp,v){
-  if(inp.dataset.r)state.recv[inp.dataset.r][inp.dataset.rf]=v;else if(inp.dataset.s)state.sold[inp.dataset.s]=v;
+  if(inp.dataset.p)state.spill[inp.dataset.p]=v;else if(inp.dataset.r)state.recv[inp.dataset.r][inp.dataset.rf]=v;else if(inp.dataset.s)state.sold[inp.dataset.s]=v;
   else state.c[inp.dataset.b][inp.dataset.l][inp.dataset.f]=v;
   update();save();
 }
@@ -275,16 +304,17 @@ $("#bkCopy").onclick=async()=>{
 function csvCell(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function buildCsv(){
   const days=allDays(),dates=Object.keys(days).sort();
-  const rows=[["Date","Beer","Storage","Bar","Cooler 1","Cooler 2","Counted on hand","Sold","Delivered","Final number","Expected","Difference (negative = short)"]];
-  let prev=null;
+  const rows=[["Date","Beer","Storage","Bar","Cooler 1","Cooler 2","Counted on hand","Sold","Delivered","Spilled","Month spillage to date","Final number","Expected","Difference (negative = short)"]];
+  let prev=null;const mt={};
   dates.forEach(d=>{
     const st=norm(days[d]);
     BEERS.forEach(([b,name])=>{
       const lt=l=>fieldsOf(l).reduce((a,[f,,m])=>a+n(st.c[b][l][f])*m,0);
       const [s1,s2,s3,s4]=LOCS.map(([l])=>lt(l));const oh=s1+s2+s3+s4;
-      const sold=n(st.sold[b]),dv=n(st.recv[b].b12)*12+n(st.recv[b].b24)*24;
-      let exp="",diff="";if(prev){exp=prevTotal(prev,b)-sold+dv;diff=oh-exp}
-      rows.push([d,name,s1,s2,s3,s4,oh,sold,dv,oh+sold,exp,diff]);
+      const sold=n(st.sold[b]),sp=n(st.spill[b]),dv=n(st.recv[b].b12)*12+n(st.recv[b].b24)*24;
+      const mk=d.slice(0,7)+b;mt[mk]=(mt[mk]||0)+sp;
+      let exp="",diff="";if(prev){exp=prevTotal(prev,b)-sold-sp+dv;diff=oh-exp}
+      rows.push([d,name,s1,s2,s3,s4,oh,sold,dv,sp,mt[mk],oh+sold,exp,diff]);
     });
     prev=st;
   });
