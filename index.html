@@ -168,7 +168,7 @@ function render(){
   $("#nav").innerHTML=BEERS.map(([b])=>`<button class="chip beer-${b}" data-go="${b}"><span>${SHORT[b]}</span><b id="nv-${b}">0</b></button>`).join("");
   $("#app").innerHTML=BEERS.map(([b,name])=>`
   <div class="card bcard beer-${b}" id="sec-${b}">
-  <div class="bhead"><h2>${name}</h2>${b==="special"?'<div class="sub">Iceberg &amp; Guinness</div>':""}</div>
+  <div class="bhead"><h2>${name}</h2>${b==="special"?'<div class="sub">Iceberg &amp; Guinness</div>':b==="imported"?'<div class="sub">Corona, Heineken &amp; MGD</div>':""}</div>
   <div class="bbody"><div class="gap" id="gap-${b}"></div>
   ${LOCS.map(([l,ln])=>`<div class="loc"><div class="locname">${ln}<span id="lt-${b}-${l}">${locTotal(b,l)} beers</span></div>
     ${fieldsOf(l).filter(([f])=>shown(b,f)).map(([f,fl])=>`<div class="frow"><div class="fl">${fl}<small id="ft-${b}-${l}-${f}"></small></div>${stepper(`data-b="${b}" data-l="${l}" data-f="${f}"`,n(state.c[b][l][f]))}</div>`).join("")}</div>`).join("")}
