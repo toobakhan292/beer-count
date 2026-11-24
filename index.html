@@ -82,6 +82,20 @@ h1{margin:0 0 10px;font-size:22px}
 .bkmsg{margin-top:8px;font-size:14px;color:var(--ok)}
 .bkmsg.bad{color:#d32f2f}
 .sub{font-size:12px;color:var(--mute);margin:-2px 0 6px}
+.sumhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.sumhead h2{margin:0;font-size:20px;color:var(--ink)}
+.sumhead span{color:var(--mute);font-size:14px}
+.sumtab{width:100%;border-collapse:separate;border-spacing:0;font-size:15px}
+.sumtab th{padding:8px 4px;font-size:13px;font-weight:700;background:var(--bt);color:var(--bd);border-bottom:3px solid var(--bc)}
+.sumtab th:first-child{background:none;border-bottom:0}
+.sumtab td{padding:8px 4px;text-align:center;border-top:1px solid var(--line)}
+.sumtab td:first-child{text-align:left;color:var(--mute);font-size:14px;padding-left:0}
+.sumtab tr.strong td{font-weight:700;font-size:17px}
+.sumtab tr.strong td:first-child{color:var(--ink);font-size:14px}
+.sumtab .okt{color:var(--ok);font-weight:700}
+.sumtab .badt{color:#d32f2f;font-weight:700}
+.sumtab .dash{color:var(--mute)}
+.sumall{margin-top:10px;padding-top:10px;border-top:2px solid var(--line);display:flex;justify-content:space-between;font-size:15px}
 </style>
 </head>
 <body>
@@ -91,6 +105,7 @@ h1{margin:0 0 10px;font-size:22px}
 </header>
 <div class="nav" id="nav"></div>
 <div id="bk-remind" class="remind"></div>
+<div class="card" id="summary"></div>
 <div id="app"></div>
 <div class="card" id="bk">
   <h2>Backup</h2>
@@ -185,6 +200,24 @@ function render(){
   <div class="cmp" id="cmp-${b}"></div></div></div>`).join("");
   update();
 }
+function renderSummary(){
+  const dv=$("#date").value;
+  const nice=new Date(dv+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  const mname=new Date(dv+"T12:00:00").toLocaleDateString(undefined,{month:"long"});
+  const cell=f=>BEERS.map(([b])=>`<td>${f(b)}</td>`).join("");
+  const chk=b=>{const c=cmpInfo(b);if(!c)return '<span class="dash">-</span>';return c.diff===0?'<span class="okt">&#10003; OK</span>':(c.diff<0?`<span class="badt">Short ${-c.diff}</span>`:`<span class="badt">Over ${c.diff}</span>`)};
+  let counted=0,fin=0;BEERS.forEach(([b])=>{counted+=beerTotal(b);fin+=beerTotal(b)+n(state.sold[b])});
+  $("#summary").innerHTML=`<div class="sumhead"><h2>Summary</h2><span>${nice}</span></div>
+  <table class="sumtab"><tr><th></th>${BEERS.map(([b])=>`<th class="beer-${b}">${SHORT[b]}</th>`).join("")}</tr>
+  <tr>${"<td>Counted on hand</td>"+cell(b=>beerTotal(b))}</tr>
+  <tr>${"<td>Sold</td>"+cell(b=>n(state.sold[b]))}</tr>
+  <tr class="strong">${"<td>Final number</td>"+cell(b=>beerTotal(b)+n(state.sold[b]))}</tr>
+  <tr>${"<td>Delivered</td>"+cell(b=>delivered(b))}</tr>
+  <tr>${"<td>Spilled today</td>"+cell(b=>n(state.spill[b]))}</tr>
+  <tr>${"<td>Spilled in "+mname+"</td>"+cell(b=>monthSpill(b))}</tr>
+  <tr>${"<td>Check</td>"+cell(chk)}</tr></table>
+  <div class="sumall"><span>All beers counted: <b>${counted}</b></span><span>Final: <b>${fin}</b></span></div>`;
+}
 function daysBetween(a,c){return Math.round((Date.UTC(...c.split("-").map((x,i)=>i===1?x-1:+x))-Date.UTC(...a.split("-").map((x,i)=>i===1?x-1:+x)))/86400000)}
 function gapInfo(){
   const p=prevInfo();if(!p)return null;
@@ -219,6 +252,7 @@ function update(){
       box.innerHTML=`<b>${msg}</b><div class="d">Last count (${c.date}): ${c.prev} − sold ${c.sold}${c.sp?` − spilled ${c.sp}`:""} + delivered ${c.dv} = expected ${c.exp}. Counted now: ${c.act}.</div>`;
     }
   });
+  renderSummary();
   if($("#report").style.display==="block")$("#report").textContent=reportText();
 }
 function reportText(){
